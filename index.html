@@ -3,27 +3,184 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Annie Rock Studios</title>
+    <title>Annie Rock Studios | Management & A&R</title>
     <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --accent-color: #e07a5f;
+            --text-main: #f4f4f4;
+            --text-muted: #a0a0a0;
+        }
+
         body {
-            background-color: #1a1a1a;
-            color: #f4f4f4;
-            font-family: sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        header {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px 40px 20px;
             text-align: center;
         }
-        .container {
-            max-width: 600px;
-            margin: 50px auto;
+
+        /* Styles for your custom header illustration */
+        header img {
+            display: block;
+            margin: 0 auto 20px auto; /* Centers the image */
+            max-width: 500px; /* Adjust this size as needed for your design */
+            width: 100%;
+            height: auto;
+            border-radius: 4px; /* Matches other elements */
         }
-        h1 { color: #ff6b6b; }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            letter-spacing: -0.5px;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .main-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 20px 60px 20px;
+        }
+
+        /* Pillars Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        @media (max-width: 600px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 8px;
+            border: 1px solid #2a2a2a;
+        }
+
+        .card h2 {
+            margin-top: 0;
+            color: var(--accent-color);
+            font-size: 1.4rem;
+        }
+
+        /* Blog Section */
+        .blog-section {
+            margin-top: 50px;
+            border-top: 1px solid #2a2a2a;
+            padding-top: 40px;
+        }
+
+        .blog-section h2 {
+            font-size: 1.8rem;
+            margin-bottom: 30px;
+        }
+
+        .blog-post {
+            background-color: var(--card-bg);
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #2a2a2a;
+            text-align: left;
+        }
+
+        .blog-post .meta {
+            font-size: 0.85rem;
+            color: var(--accent-color);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .blog-post h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.3rem;
+        }
+
+        .blog-post p {
+            color: var(--text-muted);
+            margin: 0;
+        }
+
+        /* Call to Action Button */
+        .btn {
+            display: inline-block;
+            background-color: var(--accent-color);
+            color: var(--bg-color);
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-top: 15px;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background-color: #f29075;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
+
+    <header>
+        <img src="logo.png" alt="Annie Rock Studios Header Illustration">
+
         <h1>Annie Rock Studios</h1>
-        <p>Warm, approachable artist management, independent A&R, and creative blog space. Coming soon.</p>
+        <p>A warm, grounded space for independent talent. We specialize in intentional artist management, discovery, and transparent industry insights.</p>
+    </header>
+
+    <div class="main-container">
+        
+        <div class="grid">
+            <div class="card">
+                <h2>Artist Management</h2>
+                <p>Protecting the vision while navigating the landscape. We help dedicated independent artists manage releases, structure publishing, and build sustainable careers.</p>
+            </div>
+            <div class="card">
+                <h2>A&R & Submissions</h2>
+                <p>Looking for your next development partner? We are constantly filtering for fresh sounds, distinct viewpoints, and authentic storytelling.</p>
+                <a href="mailto:submissions@annierock.com" class="btn">Submit Demo</a>
+            </div>
+        </div>
+
+        <div class="blog-section">
+            <h2>The Annie Rock Blog</h2>
+            
+            <div class="blog-post">
+                <div class="meta">July 2026 • Industry Insight</div>
+                <h3>Understanding Your Publishing Catalog</h3>
+                <p>Before you pitch your next track for sync licensing, ensure your registry registrations are bulletproof. Here is a baseline checklist for handling your own performance rights metrics...</p>
+            </div>
+
+            <div class="blog-post">
+                <div class="meta">June 2026 • Studio Notes</div>
+                <h3>The Power of the B-Side Atmosphere</h3>
+                <p>Polished commercial singles have their place, but the raw B-side track is often where an artist reveals their actual foundational style. Embracing the unpolished moments creates true fans...</p>
+            </div>
+
+        </div>
+
     </div>
+
 </body>
 </html>
