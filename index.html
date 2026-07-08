@@ -25,11 +25,10 @@
         header {
             max-width: 800px;
             margin: 0 auto;
-            padding: 40px 20px 40px 20px;
+            padding: 40px 20px;
             text-align: center;
         }
 
-        /* Displays your uploaded cabin sketch directly */
         header img {
             display: block;
             margin: 0 auto 20px auto;
@@ -58,7 +57,6 @@
             padding: 0 20px 60px 20px;
         }
 
-        /* Pillars Grid */
         .grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -83,7 +81,6 @@
             font-size: 1.4rem;
         }
 
-        /* Video Showcase Section */
         .video-section {
             margin-top: 40px;
             border-top: 1px solid #2a2a2a;
@@ -98,7 +95,7 @@
 
         .video-container {
             position: relative;
-            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+            padding-bottom: 56.25%;
             height: 0;
             overflow: hidden;
             background: #000;
@@ -116,7 +113,6 @@
             border: 0;
         }
 
-        /* Recording Studios Directory */
         .studios-section {
             margin-top: 40px;
             border-top: 1px solid #2a2a2a;
@@ -147,11 +143,7 @@
         }
 
         @media (max-width: 600px) {
-            .studio-item {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
-            }
+            .studio-item { flex-direction: column; align-items: flex-start; gap: 10px; }
         }
 
         .studio-info h3 {
@@ -180,7 +172,6 @@
             color: var(--bg-color);
         }
 
-        /* Blog Section */
         .blog-section {
             margin-top: 50px;
             border-top: 1px solid #2a2a2a;
@@ -230,10 +221,32 @@
             font-weight: bold;
             margin-top: 15px;
             transition: background 0.2s;
+            cursor: pointer;
+            border: none;
+            font-size: 1srem;
         }
 
-        .btn:hover {
-            background-color: #f29075;
+        .btn:hover { background-color: #f29075; }
+
+        /* Footer Email Reveal Styles */
+        footer {
+            margin-top: 60px;
+            border-top: 1px solid #2a2a2a;
+            padding-top: 40px;
+            text-align: center;
+        }
+
+        .email-display {
+            display: block;
+            margin-top: 15px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+
+        .hidden {
+            display: none !important;
         }
     </style>
 </head>
@@ -269,7 +282,6 @@
         <div class="studios-section">
             <h2>Recommended Recording Network</h2>
             <div class="studio-list">
-                
                 <div class="studio-item">
                     <div class="studio-info">
                         <h3>Studio Name One</h3>
@@ -277,7 +289,6 @@
                     </div>
                     <a href="#" class="studio-link" target="_blank">View Studio</a>
                 </div>
-
                 <div class="studio-item">
                     <div class="studio-info">
                         <h3>Studio Name Two</h3>
@@ -285,19 +296,16 @@
                     </div>
                     <a href="#" class="studio-link" target="_blank">View Studio</a>
                 </div>
-
             </div>
         </div>
 
         <div class="blog-section">
             <h2>The Annie Rock Blog</h2>
-            
             <div class="blog-post">
                 <div class="meta">July 2026 • Industry Insight</div>
                 <h3>Understanding Your Publishing Catalog</h3>
                 <p>Before you pitch your next track for sync licensing, ensure your registry registrations are bulletproof. Here is a baseline checklist for handling your own performance rights metrics...</p>
             </div>
-
             <div class="blog-post">
                 <div class="meta">June 2026 • Studio Notes</div>
                 <h3>The Power of the B-Side Atmosphere</h3>
@@ -305,7 +313,20 @@
             </div>
         </div>
 
+        <footer>
+            <button id="reveal-btn" class="btn" onclick="revealEmail()">View Contact Email</button>
+            <a id="email-link" href="mailto:submissions@annierock.com" class="email-display hidden">submissions@annierock.com</a>
+        </footer>
+
     </div>
+
+    <script>
+        function revealEmail() {
+            // Hide the button and show the active email link
+            document.getElementById('reveal-btn').classList.add('hidden');
+            document.getElementById('email-link').classList.remove('hidden');
+        }
+    </script>
 
 </body>
 </html>
