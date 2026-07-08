@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Annie Rock Studios | Management & A&R</title>
+    <title>Annie Rock Records | Management & A&R</title>
     <style>
         :root {
             --bg-color: #121212;
@@ -29,14 +29,14 @@
             text-align: center;
         }
 
-        /* Styles for your custom header illustration */
+        /* Displays your uploaded cabin sketch directly */
         header img {
             display: block;
-            margin: 0 auto 20px auto; /* Centers the image */
-            max-width: 500px; /* Adjust this size as needed for your design */
+            margin: 0 auto 20px auto;
+            max-width: 500px;
             width: 100%;
             height: auto;
-            border-radius: 4px; /* Matches other elements */
+            border-radius: 4px;
         }
 
         header h1 {
@@ -83,6 +83,103 @@
             font-size: 1.4rem;
         }
 
+        /* Video Showcase Section */
+        .video-section {
+            margin-top: 40px;
+            border-top: 1px solid #2a2a2a;
+            padding-top: 40px;
+        }
+
+        .video-section h2 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+            height: 0;
+            overflow: hidden;
+            background: #000;
+            border-radius: 8px;
+            border: 1px solid #2a2a2a;
+            margin-bottom: 20px;
+        }
+
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+
+        /* Recording Studios Directory */
+        .studios-section {
+            margin-top: 40px;
+            border-top: 1px solid #2a2a2a;
+            padding-top: 40px;
+            text-align: left;
+        }
+
+        .studios-section h2 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .studio-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .studio-item {
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #2a2a2a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        @media (max-width: 600px) {
+            .studio-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+
+        .studio-info h3 {
+            margin: 0 0 5px 0;
+            font-size: 1.2rem;
+        }
+
+        .studio-info p {
+            margin: 0;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .studio-link {
+            color: var(--accent-color);
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.9rem;
+            border: 1px solid var(--accent-color);
+            padding: 6px 12px;
+            border-radius: 4px;
+        }
+
+        .studio-link:hover {
+            background-color: var(--accent-color);
+            color: var(--bg-color);
+        }
+
         /* Blog Section */
         .blog-section {
             margin-top: 50px;
@@ -93,6 +190,7 @@
         .blog-section h2 {
             font-size: 1.8rem;
             margin-bottom: 30px;
+            text-align: center;
         }
 
         .blog-post {
@@ -122,7 +220,6 @@
             margin: 0;
         }
 
-        /* Call to Action Button */
         .btn {
             display: inline-block;
             background-color: var(--accent-color);
@@ -143,9 +240,8 @@
 <body>
 
     <header>
-        <img src="logo.png" alt="Annie Rock Studios Header Illustration">
-
-        <h1>Annie Rock Studios</h1>
+        <img src="IMG_2003.jpeg" alt="Annie Rock Records Cabin Logo">
+        <h1>Annie Rock Records</h1>
         <p>A warm, grounded space for independent talent. We specialize in intentional artist management, discovery, and transparent industry insights.</p>
     </header>
 
@@ -163,6 +259,36 @@
             </div>
         </div>
 
+        <div class="video-section">
+            <h2>Featured Studio Media</h2>
+            <div class="video-container">
+                <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" allowfullscreen></iframe>
+            </div>
+        </div>
+
+        <div class="studios-section">
+            <h2>Recommended Recording Network</h2>
+            <div class="studio-list">
+                
+                <div class="studio-item">
+                    <div class="studio-info">
+                        <h3>Studio Name One</h3>
+                        <p>Location City, ST — Premier tracking, mixing suite, and classic analog setups.</p>
+                    </div>
+                    <a href="#" class="studio-link" target="_blank">View Studio</a>
+                </div>
+
+                <div class="studio-item">
+                    <div class="studio-info">
+                        <h3>Studio Name Two</h3>
+                        <p>Location City, ST — Dedicated production rooms, acoustic tracking, and vintage gear.</p>
+                    </div>
+                    <a href="#" class="studio-link" target="_blank">View Studio</a>
+                </div>
+
+            </div>
+        </div>
+
         <div class="blog-section">
             <h2>The Annie Rock Blog</h2>
             
@@ -177,7 +303,6 @@
                 <h3>The Power of the B-Side Atmosphere</h3>
                 <p>Polished commercial singles have their place, but the raw B-side track is often where an artist reveals their actual foundational style. Embracing the unpolished moments creates true fans...</p>
             </div>
-
         </div>
 
     </div>
