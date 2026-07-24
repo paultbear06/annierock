@@ -250,6 +250,21 @@
         }
     </style>
 </head>
+    <script>
+  // Pull the blog post saved from the admin panel
+  const savedBlog = JSON.parse(localStorage.getItem("annierock_blog"));
+  if (savedBlog) {
+    const blogContainer = document.getElementById("blog-section"); // Make sure your blog div has id="blog-section"
+    if (blogContainer) {
+      blogContainer.innerHTML = `
+        <h3>${savedBlog.title}</h3>
+        <p><small>${savedBlog.date}</small></p>
+        <p>${savedBlog.content}</p>
+      `;
+    }
+  }
+</script>
+
 <body>
 
     <header>
