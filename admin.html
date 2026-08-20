@@ -91,7 +91,25 @@
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
         
         audio { width: 100%; margin-top: 8px; }
-        .latency-control { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: #aaa; }
+        
+        /* Control Sliders & Inputs */
+        .track-sliders {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 8px;
+            font-size: 0.8rem;
+            color: #aaa;
+        }
+        .slider-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .slider-row label { width: 75px; }
+        .slider-row input[type="range"] { flex-grow: 1; }
+        .slider-row span { width: 35px; text-align: right; }
+
         input[type="number"], input[type="text"] {
             background: #2a2a2a;
             border: 1px solid #444;
@@ -134,6 +152,7 @@
             gap: 10px;
         }
         .master-btn { background: #00e676; font-size: 1rem; padding: 12px; }
+        .export-btn { background: #ffb74d; color: #000; font-size: 1rem; padding: 12px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -162,14 +181,22 @@
                 <div class="track-title">Track 1</div>
                 <div class="controls">
                     <button id="btn-1" class="rec" onclick="toggleRecord(1)">Record</button>
-                    <div class="latency-control">
+                    <div class="slider-row">
                         <label>Offset (ms):</label>
                         <input type="number" id="offset-1" value="0" onchange="updateOffset(1, this.value)">
                     </div>
                 </div>
+
+                <div class="track-sliders">
+                    <div class="slider-row">
+                        <label>🔊 Volume:</label>
+                        <input type="range" id="vol-1" min="0" max="100" value="100" oninput="updateVolume(1, this.value)">
+                        <span id="vol-val-1">100%</span>
+                    </div>
+                </div>
+
                 <audio id="audio-1" controls></audio>
                 
-                <!-- Track Options & Export Box -->
                 <div class="track-action-box">
                     <button class="btn-dl" onclick="downloadTrack(1)">💾 Download File</button>
                     <button class="btn-save" onclick="saveToStash(1)">📦 Stash Take</button>
@@ -182,14 +209,22 @@
                 <div class="track-title">Track 2</div>
                 <div class="controls">
                     <button id="btn-2" class="rec" onclick="toggleRecord(2)">Record</button>
-                    <div class="latency-control">
+                    <div class="slider-row">
                         <label>Offset (ms):</label>
                         <input type="number" id="offset-2" value="0" onchange="updateOffset(2, this.value)">
                     </div>
                 </div>
+
+                <div class="track-sliders">
+                    <div class="slider-row">
+                        <label>🔊 Volume:</label>
+                        <input type="range" id="vol-2" min="0" max="100" value="100" oninput="updateVolume(2, this.value)">
+                        <span id="vol-val-2">100%</span>
+                    </div>
+                </div>
+
                 <audio id="audio-2" controls></audio>
 
-                <!-- Track Options & Export Box -->
                 <div class="track-action-box">
                     <button class="btn-dl" onclick="downloadTrack(2)">💾 Download File</button>
                     <button class="btn-save" onclick="saveToStash(2)">📦 Stash Take</button>
@@ -202,14 +237,22 @@
                 <div class="track-title">Track 3</div>
                 <div class="controls">
                     <button id="btn-3" class="rec" onclick="toggleRecord(3)">Record</button>
-                    <div class="latency-control">
+                    <div class="slider-row">
                         <label>Offset (ms):</label>
                         <input type="number" id="offset-3" value="0" onchange="updateOffset(3, this.value)">
                     </div>
                 </div>
+
+                <div class="track-sliders">
+                    <div class="slider-row">
+                        <label>🔊 Volume:</label>
+                        <input type="range" id="vol-3" min="0" max="100" value="100" oninput="updateVolume(3, this.value)">
+                        <span id="vol-val-3">100%</span>
+                    </div>
+                </div>
+
                 <audio id="audio-3" controls></audio>
 
-                <!-- Track Options & Export Box -->
                 <div class="track-action-box">
                     <button class="btn-dl" onclick="downloadTrack(3)">💾 Download File</button>
                     <button class="btn-save" onclick="saveToStash(3)">📦 Stash Take</button>
@@ -217,10 +260,11 @@
                 </div>
             </div>
 
-            <!-- MASTER CONTROLS -->
+            <!-- MASTER CONTROLS & MIX BOUNCER -->
             <div class="master-controls">
                 <button class="master-btn" onclick="playAll()">▶ Play All Tracks Together</button>
                 <button onclick="stopAll()" style="background:#444; color:#fff;">⏹ Stop Playback</button>
+                <button class="export-btn" onclick="exportMasterMix()">🎛️ Export Master Mix (Balanced WAV)</button>
             </div>
         </div>
 
@@ -268,6 +312,17 @@ let stashedTakes = [];
 
 function updateOffset(trackNum, val) {
   trackOffsets[trackNum] = parseInt(val, 10) || 0;
+}
+
+function updateVolume(trackNum, val) {
+    const audioElement = document.getElementById(`audio-${trackNum}`);
+    const percentSpan = document.getElementById(`vol-val-${trackNum}`);
+    if (audioElement) {
+        audioElement.volume = val / 100;
+    }
+    if (percentSpan) {
+        percentSpan.innerText = val + "%";
+    }
 }
 
 function getSupportedMimeType() {
@@ -358,7 +413,6 @@ function stopAll() {
   stopBackingTracks();
 }
 
-// TRACK CLEARING / DELETION
 function deleteTrack(trackNum) {
   recordedBlobs[trackNum] = null;
   const audioElement = document.getElementById(`audio-${trackNum}`);
@@ -366,7 +420,6 @@ function deleteTrack(trackNum) {
   audioElement.load();
 }
 
-// FILE DOWNLOAD FUNCTION
 function downloadTrack(trackNum) {
   const blob = recordedBlobs[trackNum];
   if (!blob) {
@@ -381,7 +434,97 @@ function downloadTrack(trackNum) {
   a.click();
 }
 
-// STASH VAULT LOGIC (3 SONG BUFFER)
+// MASTER MIX BOUNCER ENGINE
+async function exportMasterMix() {
+  const activeTracks = [1, 2, 3].filter(t => recordedBlobs[t] !== null);
+  if (activeTracks.length === 0) {
+    alert("No recorded tracks found to export!");
+    return;
+  }
+
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  let maxDuration = 0;
+  const decodedBuffers = {};
+
+  for (let t of activeTracks) {
+    const arrayBuffer = await recordedBlobs[t].arrayBuffer();
+    const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+    decodedBuffers[t] = audioBuffer;
+    
+    const offsetSec = Math.max(0, trackOffsets[t] / 1000);
+    const totalTrackLen = audioBuffer.duration + offsetSec;
+    if (totalTrackLen > maxDuration) {
+      maxDuration = totalTrackLen;
+    }
+  }
+
+  const sampleRate = 44100;
+  const offlineCtx = new OfflineAudioContext(2, sampleRate * maxDuration, sampleRate);
+
+  activeTracks.forEach(t => {
+    const buffer = decodedBuffers[t];
+    const source = offlineCtx.createBufferSource();
+    source.buffer = buffer;
+
+    const gainNode = offlineCtx.createGain();
+    const sliderVal = document.getElementById(`vol-${t}`).value;
+    gainNode.gain.value = sliderVal / 100;
+
+    source.connect(gainNode);
+    gainNode.connect(offlineCtx.destination);
+
+    const offsetSec = Math.max(0, trackOffsets[t] / 1000);
+    source.start(offlineCtx.currentTime + offsetSec);
+  });
+
+  const renderedBuffer = await offlineCtx.startRendering();
+  const wavBlob = bufferToWav(renderedBuffer);
+
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(wavBlob);
+  a.download = `AnnieRock_MasterMix_${Date.now()}.wav`;
+  a.click();
+}
+
+// WAV FILE ENCODER
+function bufferToWav(buffer) {
+  let numOfChan = buffer.numberOfChannels,
+      length = buffer.length * numOfChan * 2 + 44,
+      out = new DataView(new ArrayBuffer(length)),
+      channels = [], sampleRate = buffer.sampleRate,
+      offset = 0, pos = 0;
+
+  function setUint16(data) { out.setUint16(pos, data, true); pos += 2; }
+  function setUint32(data) { out.setUint32(pos, data, true); pos += 4; }
+
+  setUint32(0x46464952); // "RIFF"
+  setUint32(length - 8);
+  setUint32(0x45564157); // "WAVE"
+  setUint32(0x20746d66); // "fmt "
+  setUint32(16);
+  setUint16(1);
+  setUint16(numOfChan);
+  setUint32(sampleRate);
+  setUint32(sampleRate * 2 * numOfChan);
+  setUint16(numOfChan * 2);
+  setUint16(16);
+  setUint32(0x61746164); // "data"
+  setUint32(length - pos - 4);
+
+  for (let i = 0; i < buffer.numberOfChannels; i++) channels.push(buffer.getChannelData(i));
+
+  while (pos < length) {
+    for (let i = 0; i < numOfChan; i++) {
+      let sample = Math.max(-1, Math.min(1, channels[i][offset]));
+      sample = (0.5 + sample < 0 ? sample * 32768 : sample * 32767) | 0;
+      out.setInt16(pos, sample, true);
+      pos += 2;
+    }
+    offset++;
+  }
+  return new Blob([out], { type: "audio/wav" });
+}
+
 function saveToStash(trackNum) {
   const blob = recordedBlobs[trackNum];
   if (!blob) {
