@@ -62,7 +62,7 @@
             border: 1px solid #3d3d3d;
             border-radius: 6px;
             padding: 12px;
-            margin-bottom: 12px;
+            margin-bottom: 15px;
         }
         .track-title { font-weight: bold; margin-bottom: 8px; color: #bb86fc; }
         .controls { 
@@ -76,7 +76,7 @@
             background: #bb86fc;
             color: #000;
             border: none;
-            padding: 10px 14px;
+            padding: 8px 12px;
             border-radius: 6px;
             font-weight: bold;
             cursor: pointer;
@@ -84,6 +84,10 @@
         }
         button.rec { background: #cf6679; color: #fff; }
         button.recording { background: #ff1744; animation: pulse 1s infinite; }
+        button.btn-danger { background: #d32f2f; color: #fff; }
+        button.btn-save { background: #0288d1; color: #fff; }
+        button.btn-dl { background: #388e3c; color: #fff; }
+        
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
         
         audio { width: 100%; margin-top: 8px; }
@@ -96,6 +100,32 @@
             border-radius: 4px;
         }
         input[type="number"] { width: 60px; text-align: center; }
+
+        /* Track Action Box */
+        .track-action-box {
+            margin-top: 10px;
+            padding: 8px;
+            background: #181818;
+            border: 1px dashed #555;
+            border-radius: 4px;
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+
+        /* Stash Vault */
+        .stash-item {
+            background: #2a2a2a;
+            border: 1px solid #444;
+            padding: 8px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
         .master-controls {
             text-align: center;
             margin-top: 15px;
@@ -138,6 +168,13 @@
                     </div>
                 </div>
                 <audio id="audio-1" controls></audio>
+                
+                <!-- Track Options & Export Box -->
+                <div class="track-action-box">
+                    <button class="btn-dl" onclick="downloadTrack(1)">💾 Download File</button>
+                    <button class="btn-save" onclick="saveToStash(1)">📦 Stash Take</button>
+                    <button class="btn-danger" onclick="deleteTrack(1)">🗑️ Clear Track</button>
+                </div>
             </div>
 
             <!-- TRACK 2 -->
@@ -151,6 +188,13 @@
                     </div>
                 </div>
                 <audio id="audio-2" controls></audio>
+
+                <!-- Track Options & Export Box -->
+                <div class="track-action-box">
+                    <button class="btn-dl" onclick="downloadTrack(2)">💾 Download File</button>
+                    <button class="btn-save" onclick="saveToStash(2)">📦 Stash Take</button>
+                    <button class="btn-danger" onclick="deleteTrack(2)">🗑️ Clear Track</button>
+                </div>
             </div>
 
             <!-- TRACK 3 -->
@@ -164,6 +208,13 @@
                     </div>
                 </div>
                 <audio id="audio-3" controls></audio>
+
+                <!-- Track Options & Export Box -->
+                <div class="track-action-box">
+                    <button class="btn-dl" onclick="downloadTrack(3)">💾 Download File</button>
+                    <button class="btn-save" onclick="saveToStash(3)">📦 Stash Take</button>
+                    <button class="btn-danger" onclick="deleteTrack(3)">🗑️ Clear Track</button>
+                </div>
             </div>
 
             <!-- MASTER CONTROLS -->
@@ -171,6 +222,16 @@
                 <button class="master-btn" onclick="playAll()">▶ Play All Tracks Together</button>
                 <button onclick="stopAll()" style="background:#444; color:#fff;">⏹ Stop Playback</button>
             </div>
+        </div>
+
+        <!-- STASH VAULT (3 SONG BUFFER) -->
+        <div class="admin-section">
+            <div class="section-header">📁 Stash Vault (Max 3 Saved Songs/Takes)</div>
+            <p style="font-size:0.8rem; color:#aaa;">Save takes here temporarily. Download them before clearing to start fresh.</p>
+            <div id="stash-container">
+                <p style="font-size:0.85rem; color:#666; text-align:center;">Vault empty.</p>
+            </div>
+            <button class="btn-danger" onclick="clearStashVault()" style="width:100%; margin-top:10px;">🗑️ Clear Entire Vault</button>
         </div>
 
         <!-- SITE CONTENT MANAGEMENT SECTION -->
@@ -187,7 +248,6 @@
 // PASSCODE AUTHORIZATION
 function checkPasscode() {
     const input = document.getElementById("passcode").value;
-    // Default admin passcode
     if (input === "annierock2026") {
         document.getElementById("auth-container").style.display = "none";
         document.getElementById("admin-panel").style.display = "block";
@@ -196,7 +256,7 @@ function checkPasscode() {
     }
 }
 
-// MULTI-TRACK AUDIO ENGINE & FIXES
+// MULTI-TRACK AUDIO ENGINE & STORAGE
 let mediaRecorder;
 let activeStream = null;
 let audioChunks = [];
@@ -204,6 +264,7 @@ let recordedBlobs = { 1: null, 2: null, 3: null };
 let isRecording = false;
 let activeTrack = null;
 let trackOffsets = { 1: 0, 2: 0, 3: 0 };
+let stashedTakes = [];
 
 function updateOffset(trackNum, val) {
   trackOffsets[trackNum] = parseInt(val, 10) || 0;
@@ -229,7 +290,6 @@ async function toggleRecord(trackNum) {
 
   try {
     activeStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    
     const mimeType = getSupportedMimeType();
     const options = mimeType ? { mimeType } : {};
     
@@ -296,6 +356,94 @@ function stopBackingTracks() {
 function stopAll() {
   stopRecording();
   stopBackingTracks();
+}
+
+// TRACK CLEARING / DELETION
+function deleteTrack(trackNum) {
+  recordedBlobs[trackNum] = null;
+  const audioElement = document.getElementById(`audio-${trackNum}`);
+  audioElement.src = "";
+  audioElement.load();
+}
+
+// FILE DOWNLOAD FUNCTION
+function downloadTrack(trackNum) {
+  const blob = recordedBlobs[trackNum];
+  if (!blob) {
+    alert("No recording found on Track " + trackNum + " to download!");
+    return;
+  }
+  
+  const ext = blob.type.includes("webm") ? "webm" : "mp4";
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `AnnieRock_Track${trackNum}_${Date.now()}.${ext}`;
+  a.click();
+}
+
+// STASH VAULT LOGIC (3 SONG BUFFER)
+function saveToStash(trackNum) {
+  const blob = recordedBlobs[trackNum];
+  if (!blob) {
+    alert("No audio recorded on Track " + trackNum + "!");
+    return;
+  }
+
+  if (stashedTakes.length >= 3) {
+    alert("Vault full! (Max 3 takes). Download or clear existing saved songs to make space.");
+    return;
+  }
+
+  const takeName = prompt("Name this saved take/song:", `Take ${stashedTakes.length + 1}`);
+  if (!takeName) return;
+
+  stashedTakes.push({
+    name: takeName,
+    blob: blob,
+    url: URL.createObjectURL(blob),
+    ext: blob.type.includes("webm") ? "webm" : "mp4"
+  });
+
+  renderStashVault();
+}
+
+function renderStashVault() {
+  const container = document.getElementById("stash-container");
+  if (stashedTakes.length === 0) {
+    container.innerHTML = `<p style="font-size:0.85rem; color:#666; text-align:center;">Vault empty.</p>`;
+    return;
+  }
+
+  container.innerHTML = "";
+  stashedTakes.forEach((item, idx) => {
+    const div = document.createElement("div");
+    div.className = "stash-item";
+    div.innerHTML = `
+      <div>
+        <strong>${item.name}</strong>
+        <audio src="${item.url}" controls style="width:100%; margin-top:5px; height:30px;"></audio>
+      </div>
+      <div>
+        <button class="btn-dl" onclick="downloadStashedItem(${idx})">💾 Download</button>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function downloadStashedItem(idx) {
+  const item = stashedTakes[idx];
+  const a = document.createElement("a");
+  a.href = item.url;
+  a.download = `${item.name.replace(/\s+/g, '_')}_AnnieRock.${item.ext}`;
+  a.click();
+}
+
+function clearStashVault() {
+  if (confirm("Are you sure you want to clear the entire Stash Vault? Make sure you downloaded your songs first!")) {
+    stashedTakes = [];
+    renderStashVault();
+  }
 }
 
 function playTrackWithOffset(trackNum) {
