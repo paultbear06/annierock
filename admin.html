@@ -5,51 +5,66 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Annie Rock Records - Studio Backdoor</title>
     <style>
+        * { box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: #121212;
             color: #e0e0e0;
-            padding: 20px;
-            max-width: 600px;
+            padding: 15px;
+            max-width: 500px;
             margin: 0 auto;
         }
-        h1 { color: #bb86fc; font-size: 1.5rem; text-align: center; }
+        h1 { color: #bb86fc; font-size: 1.3rem; text-align: center; margin-bottom: 20px; }
         .track-card {
             background: #1e1e1e;
             border: 1px solid #333;
             border-radius: 8px;
-            padding: 15px;
+            padding: 12px;
             margin-bottom: 15px;
         }
         .track-title { font-weight: bold; margin-bottom: 8px; color: #00e676; }
-        .controls { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+        .controls { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 10px; 
+            gap: 8px;
+        }
         button {
             background: #bb86fc;
             color: #000;
             border: none;
-            padding: 8px 14px;
-            border-radius: 4px;
+            padding: 10px 14px;
+            border-radius: 6px;
             font-weight: bold;
             cursor: pointer;
+            touch-action: manipulation;
         }
         button.rec { background: #cf6679; color: #fff; }
-        audio { width: 100%; margin-top: 10px; }
-        .latency-control { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #aaa; }
+        button.recording { background: #ff1744; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        
+        audio { width: 100%; margin-top: 8px; }
+        .latency-control { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: #aaa; }
         input[type="number"] {
-            width: 70px;
+            width: 60px;
             background: #2a2a2a;
             border: 1px solid #444;
             color: #fff;
-            padding: 4px;
+            padding: 6px;
             border-radius: 4px;
+            text-align: center;
         }
         .master-controls {
             text-align: center;
-            margin-top: 25px;
+            margin-top: 20px;
             padding-top: 15px;
             border-top: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
-        .master-btn { background: #00e676; font-size: 1.1rem; padding: 12px 24px; }
+        .master-btn { background: #00e676; font-size: 1rem; padding: 12px; }
     </style>
 </head>
 <body>
@@ -60,10 +75,10 @@
     <div class="track-card">
         <div class="track-title">Track 1</div>
         <div class="controls">
-            <button class="rec" onclick="toggleRecord(1)">Record / Stop</button>
+            <button id="btn-1" class="rec" onclick="toggleRecord(1)">Record</button>
             <div class="latency-control">
                 <label>Offset (ms):</label>
-                <input type="number" value="0" onchange="updateOffset(1, this.value)">
+                <input type="number" id="offset-1" value="0" onchange="updateOffset(1, this.value)">
             </div>
         </div>
         <audio id="audio-1" controls></audio>
@@ -73,10 +88,10 @@
     <div class="track-card">
         <div class="track-title">Track 2</div>
         <div class="controls">
-            <button class="rec" onclick="toggleRecord(2)">Record / Stop</button>
+            <button id="btn-2" class="rec" onclick="toggleRecord(2)">Record</button>
             <div class="latency-control">
                 <label>Offset (ms):</label>
-                <input type="number" value="0" onchange="updateOffset(2, this.value)">
+                <input type="number" id="offset-2" value="0" onchange="updateOffset(2, this.value)">
             </div>
         </div>
         <audio id="audio-2" controls></audio>
@@ -86,10 +101,10 @@
     <div class="track-card">
         <div class="track-title">Track 3</div>
         <div class="controls">
-            <button class="rec" onclick="toggleRecord(3)">Record / Stop</button>
+            <button id="btn-3" class="rec" onclick="toggleRecord(3)">Record</button>
             <div class="latency-control">
                 <label>Offset (ms):</label>
-                <input type="number" value="0" onchange="updateOffset(3, this.value)">
+                <input type="number" id="offset-3" value="0" onchange="updateOffset(3, this.value)">
             </div>
         </div>
         <audio id="audio-3" controls></audio>
@@ -98,7 +113,7 @@
     <!-- MASTER CONTROLS -->
     <div class="master-controls">
         <button class="master-btn" onclick="playAll()">▶ Play All Tracks Together</button>
-        <button onclick="stopRecording()" style="background:#555; color:#fff;">⏹ Stop All</button>
+        <button onclick="stopAll()" style="background:#444; color:#fff;">⏹ Stop Playback</button>
     </div>
 
 <script>
@@ -107,44 +122,77 @@ let audioChunks = [];
 let recordedBlobs = { 1: null, 2: null, 3: null };
 let isRecording = false;
 let activeTrack = null;
-
-// Track offset delays in milliseconds (default: 0ms)
 let trackOffsets = { 1: 0, 2: 0, 3: 0 };
 
 function updateOffset(trackNum, val) {
   trackOffsets[trackNum] = parseInt(val, 10) || 0;
 }
 
+// Automatically detect browser-supported recording MIME types (Safari iOS fallback)
+function getSupportedMimeType() {
+  const types = [
+    'audio/webm',
+    'audio/mp4',
+    'audio/aac',
+    'audio/ogg'
+  ];
+  for (let t of types) {
+    if (MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) {
+      return t;
+    }
+  }
+  return ''; // Browser default fallback
+}
+
 async function toggleRecord(trackNum) {
   if (isRecording) {
-    stopRecording();
+    if (activeTrack === trackNum) {
+      stopRecording();
+    }
     return;
   }
 
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     
-    // Note: Standard browser MediaRecorder outputs webm audio
-    mediaRecorder = new MediaRecorder(stream);
+    const mimeType = getSupportedMimeType();
+    const options = mimeType ? { mimeType } : {};
+    
+    mediaRecorder = new MediaRecorder(stream, options);
     audioChunks = [];
     activeTrack = trackNum;
 
-    // Play other tracks with their respective latency offsets
+    // Start playing other recorded tracks concurrently
     playOtherTracks(trackNum);
 
-    mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
+    mediaRecorder.ondataavailable = event => {
+      if (event.data.size > 0) audioChunks.push(event.data);
+    };
+
     mediaRecorder.onstop = () => {
-      const blob = new Blob(audioChunks, { type: 'audio/webm' });
+      const finalMime = mediaRecorder.mimeType || 'audio/mp4';
+      const blob = new Blob(audioChunks, { type: finalMime });
       recordedBlobs[trackNum] = blob;
       const audioUrl = URL.createObjectURL(blob);
       const audioElement = document.getElementById(`audio-${trackNum}`);
       audioElement.src = audioUrl;
+      
+      // Reset button appearance
+      const btn = document.getElementById(`btn-${trackNum}`);
+      btn.innerText = "Record";
+      btn.classList.remove("recording");
     };
 
     mediaRecorder.start();
     isRecording = true;
+
+    // Update UI button state
+    const btn = document.getElementById(`btn-${trackNum}`);
+    btn.innerText = "⏹ Stop";
+    btn.classList.add("recording");
+
   } catch (err) {
-    alert("Microphone access denied or not supported.");
+    alert("Microphone permission denied or unsupported audio format on this browser.");
   }
 }
 
@@ -153,9 +201,16 @@ function stopRecording() {
     mediaRecorder.stop();
     isRecording = false;
   }
+}
+
+function stopAll() {
+  stopRecording();
   [1, 2, 3].forEach(t => {
     const el = document.getElementById(`audio-${t}`);
-    if (el) el.pause();
+    if (el) {
+      el.pause();
+      el.currentTime = 0;
+    }
   });
 }
 
@@ -166,13 +221,11 @@ function playTrackWithOffset(trackNum) {
   const offsetMs = trackOffsets[trackNum];
   
   if (offsetMs >= 0) {
-    // Delay playback start by positive offset
     setTimeout(() => {
       el.currentTime = 0;
       el.play();
     }, offsetMs);
   } else {
-    // Start audio slightly ahead into the file if offset is negative
     el.currentTime = Math.abs(offsetMs) / 1000;
     el.play();
   }
