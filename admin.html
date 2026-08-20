@@ -64,7 +64,32 @@
             padding: 12px;
             margin-bottom: 15px;
         }
-        .track-title { font-weight: bold; margin-bottom: 8px; color: #bb86fc; }
+        .track-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .track-title { font-weight: bold; color: #bb86fc; }
+        
+        /* Clip Indicator Light */
+        .clip-badge {
+            font-size: 0.75rem;
+            font-weight: bold;
+            padding: 3px 8px;
+            border-radius: 12px;
+            background: #333;
+            color: #777;
+            border: 1px solid #444;
+            transition: all 0.1s ease;
+        }
+        .clip-badge.clipping {
+            background: #ff1744;
+            color: #fff;
+            border-color: #ff5252;
+            box-shadow: 0 0 8px #ff1744;
+        }
+
         .controls { 
             display: flex; 
             justify-content: space-between; 
@@ -178,7 +203,10 @@
 
             <!-- TRACK 1 -->
             <div class="track-card">
-                <div class="track-title">Track 1</div>
+                <div class="track-header-row">
+                    <span class="track-title">Track 1</span>
+                    <span id="clip-1" class="clip-badge">SIGNAL OK</span>
+                </div>
                 <div class="controls">
                     <button id="btn-1" class="rec" onclick="toggleRecord(1)">Record</button>
                     <div class="slider-row">
@@ -206,7 +234,10 @@
 
             <!-- TRACK 2 -->
             <div class="track-card">
-                <div class="track-title">Track 2</div>
+                <div class="track-header-row">
+                    <span class="track-title">Track 2</span>
+                    <span id="clip-2" class="clip-badge">SIGNAL OK</span>
+                </div>
                 <div class="controls">
                     <button id="btn-2" class="rec" onclick="toggleRecord(2)">Record</button>
                     <div class="slider-row">
@@ -234,7 +265,10 @@
 
             <!-- TRACK 3 -->
             <div class="track-card">
-                <div class="track-title">Track 3</div>
+                <div class="track-header-row">
+                    <span class="track-title">Track 3</span>
+                    <span id="clip-3" class="clip-badge">SIGNAL OK</span>
+                </div>
                 <div class="controls">
                     <button id="btn-3" class="rec" onclick="toggleRecord(3)">Record</button>
                     <div class="slider-row">
@@ -310,6 +344,12 @@ let activeTrack = null;
 let trackOffsets = { 1: 0, 2: 0, 3: 0 };
 let stashedTakes = [];
 
+// Audio Monitoring & Peak Analysis Variables
+let audioCtx = null;
+let analyser = null;
+let micSource = null;
+let animFrameId = null;
+
 function updateOffset(trackNum, val) {
   trackOffsets[trackNum] = parseInt(val, 10) || 0;
 }
@@ -352,6 +392,9 @@ async function toggleRecord(trackNum) {
     audioChunks = [];
     activeTrack = trackNum;
 
+    // Start Audio Analyzer for Clipping Detection
+    startClipMonitoring(activeStream, trackNum);
+
     playOtherTracks(trackNum);
 
     mediaRecorder.ondataavailable = event => {
@@ -359,6 +402,8 @@ async function toggleRecord(trackNum) {
     };
 
     mediaRecorder.onstop = () => {
+      stopClipMonitoring();
+
       const finalMime = mediaRecorder.mimeType || 'audio/mp4';
       const blob = new Blob(audioChunks, { type: finalMime });
       recordedBlobs[trackNum] = blob;
@@ -391,6 +436,53 @@ async function toggleRecord(trackNum) {
   }
 }
 
+// REAL-TIME PEAK / CLIP MONITORING ENGINE
+function startClipMonitoring(stream, trackNum) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 256;
+    
+    micSource = audioCtx.createMediaStreamSource(stream);
+    micSource.connect(analyser);
+
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+    const clipBadge = document.getElementById(`clip-${trackNum}`);
+
+    function checkPeaks() {
+        analyser.getByteTimeDomainData(dataArray);
+        let maxPeak = 0;
+
+        for (let i = 0; i < bufferLength; i++) {
+            const v = Math.abs(dataArray[i] - 128); // 128 is center zero point
+            if (v > maxPeak) maxPeak = v;
+        }
+
+        // Digital Peak Threshold check (~96%+ input level triggers CLIP warning)
+        if (maxPeak >= 123) {
+            clipBadge.innerText = "⚠️ CLIP!";
+            clipBadge.classList.add("clipping");
+        } else {
+            clipBadge.innerText = "SIGNAL OK";
+            clipBadge.classList.remove("clipping");
+        }
+
+        if (isRecording) {
+            animFrameId = requestAnimationFrame(checkPeaks);
+        }
+    }
+
+    checkPeaks();
+}
+
+function stopClipMonitoring() {
+    if (animFrameId) cancelAnimationFrame(animFrameId);
+    if (audioCtx) {
+        audioCtx.close();
+        audioCtx = null;
+    }
+}
+
 function stopRecording() {
   if (mediaRecorder && isRecording) {
     mediaRecorder.stop();
@@ -418,6 +510,10 @@ function deleteTrack(trackNum) {
   const audioElement = document.getElementById(`audio-${trackNum}`);
   audioElement.src = "";
   audioElement.load();
+
+  const clipBadge = document.getElementById(`clip-${trackNum}`);
+  clipBadge.innerText = "SIGNAL OK";
+  clipBadge.classList.remove("clipping");
 }
 
 function downloadTrack(trackNum) {
@@ -442,13 +538,13 @@ async function exportMasterMix() {
     return;
   }
 
-  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const exportAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
   let maxDuration = 0;
   const decodedBuffers = {};
 
   for (let t of activeTracks) {
     const arrayBuffer = await recordedBlobs[t].arrayBuffer();
-    const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+    const audioBuffer = await exportAudioCtx.decodeAudioData(arrayBuffer);
     decodedBuffers[t] = audioBuffer;
     
     const offsetSec = Math.max(0, trackOffsets[t] / 1000);
