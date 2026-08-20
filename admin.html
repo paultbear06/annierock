@@ -3,237 +3,196 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Annie Rock - Admin Backdoor</title>
+    <title>Annie Rock Records - Studio Backdoor</title>
     <style>
-        :root {
-            --bg-color: #121212;
-            --card-bg: #1e1e1e;
-            --accent-color: #bb86fc;
-            --text-color: #e0e0e0;
-            --danger-color: #cf6679;
-        }
-
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
+            background-color: #121212;
+            color: #e0e0e0;
             padding: 20px;
-        }
-
-        .container {
             max-width: 600px;
             margin: 0 auto;
         }
-
-        .card {
-            background-color: var(--card-bg);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-        }
-
-        h1, h2, h3 {
-            margin-top: 0;
-            color: #fff;
-        }
-
-        label {
-            display: block;
-            margin-top: 10px;
-            font-weight: bold;
-            font-size: 0.9em;
-        }
-
-        input[type="text"], input[type="password"], textarea {
-            width: 100%;
-            padding: 12px;
-            margin-top: 6px;
-            border-radius: 6px;
+        h1 { color: #bb86fc; font-size: 1.5rem; text-align: center; }
+        .track-card {
+            background: #1e1e1e;
             border: 1px solid #333;
-            background-color: #2a2a2a;
-            color: #fff;
-            box-sizing: border-box;
-            font-size: 16px;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
         }
-
+        .track-title { font-weight: bold; margin-bottom: 8px; color: #00e676; }
+        .controls { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
         button {
-            width: 100%;
-            padding: 12px;
-            margin-top: 15px;
-            border-radius: 6px;
-            border: none;
-            background-color: var(--accent-color);
+            background: #bb86fc;
             color: #000;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 4px;
             font-weight: bold;
-            font-size: 16px;
             cursor: pointer;
         }
-
-        button.danger {
-            background-color: var(--danger-color);
+        button.rec { background: #cf6679; color: #fff; }
+        audio { width: 100%; margin-top: 10px; }
+        .latency-control { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #aaa; }
+        input[type="number"] {
+            width: 70px;
+            background: #2a2a2a;
+            border: 1px solid #444;
             color: #fff;
-            margin-top: 5px;
+            padding: 4px;
+            border-radius: 4px;
         }
-
-        .hidden {
-            display: none;
+        .master-controls {
+            text-align: center;
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 1px solid #333;
         }
-
-        .video-cascade {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            margin-top: 15px;
-        }
-
-        .video-item {
-            background: #282828;
-            padding: 10px;
-            border-radius: 8px;
-        }
-
-        iframe {
-            width: 100%;
-            height: 200px;
-            border: none;
-            border-radius: 6px;
-        }
+        .master-btn { background: #00e676; font-size: 1.1rem; padding: 12px 24px; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div id="login-panel" class="card">
-        <h2>🔒 Admin Access</h2>
-        <label for="password">Enter Passcode:</label>
-        <input type="password" id="password" placeholder="Passcode">
-        <button onclick="login()">Unlock Panel</button>
-        <p id="login-error" style="color: var(--danger-color); display: none; margin-top: 10px;">Incorrect passcode.</p>
+    <h1>🎙️ Annie Rock - 3-Track Recorder</h1>
+
+    <!-- TRACK 1 -->
+    <div class="track-card">
+        <div class="track-title">Track 1</div>
+        <div class="controls">
+            <button class="rec" onclick="toggleRecord(1)">Record / Stop</button>
+            <div class="latency-control">
+                <label>Offset (ms):</label>
+                <input type="number" value="0" onchange="updateOffset(1, this.value)">
+            </div>
+        </div>
+        <audio id="audio-1" controls></audio>
     </div>
 
-    <div id="admin-dashboard" class="hidden">
-        <h1>🎸 Annie Rock Dashboard</h1>
-
-        <div class="card">
-            <h2>✍️ Update Blog</h2>
-            <label for="blog-title">Blog Title</label>
-            <input type="text" id="blog-title" placeholder="e.g., New Track Dropping Soon!">
-
-            <label for="blog-content">Blog Post Content</label>
-            <textarea id="blog-content" rows="5" placeholder="Write your update here..."></textarea>
-
-            <button onclick="saveBlog()">Publish Blog Post</button>
-            <div id="current-blog" style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #444;"></div>
+    <!-- TRACK 2 -->
+    <div class="track-card">
+        <div class="track-title">Track 2</div>
+        <div class="controls">
+            <button class="rec" onclick="toggleRecord(2)">Record / Stop</button>
+            <div class="latency-control">
+                <label>Offset (ms):</label>
+                <input type="number" value="0" onchange="updateOffset(2, this.value)">
+            </div>
         </div>
-
-        <div class="card">
-            <h2>🎥 Video Manager (Top 3 Cascade)</h2>
-            <label for="video-url">Add YouTube Video Link or Embed URL</label>
-            <input type="text" id="video-url" placeholder="https://www.youtube.com/watch?v=...">
-            <button onclick="addVideo()">Add Video</button>
-
-            <h3>Current Video Cascade</h3>
-            <div id="video-list" class="video-cascade"></div>
-        </div>
-
-        <button class="danger" onclick="logout()">Lock Panel</button>
+        <audio id="audio-2" controls></audio>
     </div>
-</div>
+
+    <!-- TRACK 3 -->
+    <div class="track-card">
+        <div class="track-title">Track 3</div>
+        <div class="controls">
+            <button class="rec" onclick="toggleRecord(3)">Record / Stop</button>
+            <div class="latency-control">
+                <label>Offset (ms):</label>
+                <input type="number" value="0" onchange="updateOffset(3, this.value)">
+            </div>
+        </div>
+        <audio id="audio-3" controls></audio>
+    </div>
+
+    <!-- MASTER CONTROLS -->
+    <div class="master-controls">
+        <button class="master-btn" onclick="playAll()">▶ Play All Tracks Together</button>
+        <button onclick="stopRecording()" style="background:#555; color:#fff;">⏹ Stop All</button>
+    </div>
 
 <script>
-    const DEFAULT_PASS = "1234"; // Replace with your desired admin password
+let mediaRecorder;
+let audioChunks = [];
+let recordedBlobs = { 1: null, 2: null, 3: null };
+let isRecording = false;
+let activeTrack = null;
 
-    function login() {
-        const input = document.getElementById("password").value;
-        if (input === DEFAULT_PASS) {
-            document.getElementById("login-panel").classList.add("hidden");
-            document.getElementById("admin-dashboard").classList.remove("hidden");
-            loadContent();
-        } else {
-            document.getElementById("login-error").style.display = "block";
-        }
+// Track offset delays in milliseconds (default: 0ms)
+let trackOffsets = { 1: 0, 2: 0, 3: 0 };
+
+function updateOffset(trackNum, val) {
+  trackOffsets[trackNum] = parseInt(val, 10) || 0;
+}
+
+async function toggleRecord(trackNum) {
+  if (isRecording) {
+    stopRecording();
+    return;
+  }
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    
+    // Note: Standard browser MediaRecorder outputs webm audio
+    mediaRecorder = new MediaRecorder(stream);
+    audioChunks = [];
+    activeTrack = trackNum;
+
+    // Play other tracks with their respective latency offsets
+    playOtherTracks(trackNum);
+
+    mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(audioChunks, { type: 'audio/webm' });
+      recordedBlobs[trackNum] = blob;
+      const audioUrl = URL.createObjectURL(blob);
+      const audioElement = document.getElementById(`audio-${trackNum}`);
+      audioElement.src = audioUrl;
+    };
+
+    mediaRecorder.start();
+    isRecording = true;
+  } catch (err) {
+    alert("Microphone access denied or not supported.");
+  }
+}
+
+function stopRecording() {
+  if (mediaRecorder && isRecording) {
+    mediaRecorder.stop();
+    isRecording = false;
+  }
+  [1, 2, 3].forEach(t => {
+    const el = document.getElementById(`audio-${t}`);
+    if (el) el.pause();
+  });
+}
+
+function playTrackWithOffset(trackNum) {
+  const el = document.getElementById(`audio-${trackNum}`);
+  if (!el || !recordedBlobs[trackNum]) return;
+
+  const offsetMs = trackOffsets[trackNum];
+  
+  if (offsetMs >= 0) {
+    // Delay playback start by positive offset
+    setTimeout(() => {
+      el.currentTime = 0;
+      el.play();
+    }, offsetMs);
+  } else {
+    // Start audio slightly ahead into the file if offset is negative
+    el.currentTime = Math.abs(offsetMs) / 1000;
+    el.play();
+  }
+}
+
+function playOtherTracks(currentTrack) {
+  [1, 2, 3].forEach(t => {
+    if (t !== currentTrack && recordedBlobs[t]) {
+      playTrackWithOffset(t);
     }
+  });
+}
 
-    function logout() {
-        document.getElementById("login-panel").classList.remove("hidden");
-        document.getElementById("admin-dashboard").classList.add("hidden");
-        document.getElementById("password").value = "";
+function playAll() {
+  [1, 2, 3].forEach(t => {
+    if (recordedBlobs[t]) {
+      playTrackWithOffset(t);
     }
-
-    function saveBlog() {
-        const title = document.getElementById("blog-title").value;
-        const content = document.getElementById("blog-content").value;
-
-        if (!title || !content) return alert("Please fill out both title and content.");
-
-        const blogData = { title, content, date: new Date().toLocaleDateString() };
-        localStorage.setItem("annierock_blog", JSON.stringify(blogData));
-        alert("Blog updated successfully!");
-        loadContent();
-    }
-
-    function addVideo() {
-        let url = document.getElementById("video-url").value.trim();
-        if (!url) return;
-
-        // Convert standard YouTube URL to Embed format if needed
-        if (url.includes("watch?v=")) {
-            const videoId = url.split("v=")[1].split("&")[0];
-            url = `https://www.youtube.com/embed/${videoId}`;
-        } else if (url.includes("youtu.be/")) {
-            const videoId = url.split("youtu.be/")[1].split("?")[0];
-            url = `https://www.youtube.com/embed/${videoId}`;
-        }
-
-        let videos = JSON.parse(localStorage.getItem("annierock_videos") || "[]");
-        videos.unshift(url); // Add new video to the top
-        if (videos.length > 3) videos = videos.slice(0, 3); // Keep maximum 3 videos
-
-        localStorage.setItem("annierock_videos", JSON.stringify(videos));
-        document.getElementById("video-url").value = "";
-        loadContent();
-    }
-
-    function removeVideo(index) {
-        let videos = JSON.parse(localStorage.getItem("annierock_videos") || "[]");
-        videos.splice(index, 1);
-        localStorage.setItem("annierock_videos", JSON.stringify(videos));
-        loadContent();
-    }
-
-    function loadContent() {
-        // Load Blog
-        const blog = JSON.parse(localStorage.getItem("annierock_blog"));
-        const blogDiv = document.getElementById("current-blog");
-        if (blog) {
-            blogDiv.innerHTML = `<h4>Active Post (${blog.date}):</h4><strong>${blog.title}</strong><p>${blog.content}</p>`;
-        } else {
-            blogDiv.innerHTML = "<p><i>No active blog post saved.</i></p>";
-        }
-
-        // Load Videos
-        const videos = JSON.parse(localStorage.getItem("annierock_videos") || "[]");
-        const videoList = document.getElementById("video-list");
-        videoList.innerHTML = "";
-
-        if (videos.length === 0) {
-            videoList.innerHTML = "<p><i>No videos added yet.</i></p>";
-            return;
-        }
-
-        videos.forEach((vidUrl, index) => {
-            const item = document.createElement("div");
-            item.className = "video-item";
-            item.innerHTML = `
-                <iframe src="${vidUrl}" allowfullscreen></iframe>
-                <button class="danger" onclick="removeVideo(${index})">Remove Video</button>
-            `;
-            videoList.appendChild(item);
-        });
-    }
+  });
+}
 </script>
-
 </body>
 </html>
